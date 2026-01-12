@@ -22,7 +22,7 @@ export const validateRandomNumberParams = (req: Request, res: Response, next: Ne
   next();
 };
 
-export const errorHandler = (err: Error, req: Request, res: Response, next: NextFunction): void => {
+export const errorHandler = (err: Error, req: Request, res: Response, _next: NextFunction): void => {
   console.error('Error:', err);
   sendError(res, 'Internal server error', 'INTERNAL_ERROR', 500);
 };

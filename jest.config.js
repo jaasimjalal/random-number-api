@@ -15,5 +15,9 @@ module.exports = {
       lines: 80,
       statements: 80
     }
-  }
+  },
+  reporters: [
+    'default',
+    ['jest-junit', { outputDirectory: '.', outputName: 'test-results.xml' }]
+  ]
 };

@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { config, isProduction } from './config';
@@ -19,13 +19,16 @@ app.use(express.urlencoded({ extended: true }));
 // Rate limiting
 app.use(apiRateLimiter);
 
-// Health check (before versioning for direct access)
+// Health check - directly mounted
 app.get('/health', (req: Request, res: Response) => {
-  res.redirect(`/${config.apiVersion}/health`);
+  const uptime = (Date.now() - (globalThis as any).startTime) / 1000;
+  res.status(200).json({
+    status: 'healthy',
+    timestamp: new Date().toISOString(),
+    uptime,
+    version: config.apiVersion
+  });
 });
-
-// API Routes with versioning
-app.use(`/${config.apiVersion}`, routes);
 
 // Root endpoint
 app.get('/', (req: Request, res: Response) => {
@@ -34,10 +37,13 @@ app.get('/', (req: Request, res: Response) => {
     version: config.apiVersion,
     endpoints: {
       random: `/${config.apiVersion}/random`,
-      health: `/${config.apiVersion}/health`
+      health: `/health`
     }
   });
 });
+
+// API Routes with versioning
+app.use(`/${config.apiVersion}`, routes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -53,11 +59,17 @@ app.use((req: Request, res: Response) => {
 // Global error handler
 app.use(errorHandler);
 
-// Start server
-app.listen(config.port, () => {
-  console.log(`🚀 Server running on port ${config.port}`);
-  console.log(`📊 Environment: ${config.nodeEnv}`);
-  console.log(`🔗 API Version: ${config.apiVersion}`);
-});
+// Start server (only if not in test mode)
+if (require.main === module) {
+  (globalThis as any).startTime = Date.now();
+  app.listen(config.port, () => {
+    console.log(`🚀 Server running on port ${config.port}`);
+    console.log(`📊 Environment: ${config.nodeEnv}`);
+    console.log(`🔗 API Version: ${config.apiVersion}`);
+  });
+}
+
+// Set start time for tests
+(globalThis as any).startTime = Date.now();
 
 export default app;
