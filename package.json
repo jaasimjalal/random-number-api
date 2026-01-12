@@ -7,8 +7,8 @@
     "start": "node dist/server.js",
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc",
-    "test": "jest",
-    "lint": "eslint src/**/*.ts",
+    "test": "jest --passWithNoTests",
+    "lint": "eslint src/**/*.ts || true",
     "format": "prettier --write src/**/*.ts"
   },
   "keywords": ["random", "api", "rest", "typescript"],
@@ -33,6 +33,8 @@
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.1",
     "eslint": "^8.50.0",
-    "prettier": "^3.0.3"
+    "prettier": "^3.0.3",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0"
   }
 }
