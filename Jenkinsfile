@@ -18,7 +18,7 @@ pipeline {
             steps {
                 sh '''
                     # Install dependencies
-                    npm ci
+                    npm install
                 '''
             }
         }
@@ -26,7 +26,6 @@ pipeline {
         stage('Lint & Format Check') {
             steps {
                 sh '''
-                    # Run linting
                     npm run lint || echo "Lint warnings found, continuing..."
                 '''
             }
@@ -35,7 +34,6 @@ pipeline {
         stage('Run Tests') {
             steps {
                 sh '''
-                    # Run unit and integration tests
                     npm test
                 '''
             }
@@ -49,7 +47,6 @@ pipeline {
         stage('Build TypeScript') {
             steps {
                 sh '''
-                    # Clean build
                     rm -rf dist/
                     npm run build
                 '''
@@ -59,7 +56,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 sh '''
-                    # Build production Docker image
                     docker build -t ${DOCKER_IMAGE}:latest .
                 '''
             }
@@ -68,36 +64,30 @@ pipeline {
         stage('Run Container & Health Check') {
             steps {
                 script {
-                    // Stop and remove existing container if running
                     sh '''
                         docker stop ${CONTAINER_NAME} 2>/dev/null || true
                         docker rm ${CONTAINER_NAME} 2>/dev/null || true
                     '''
                     
-                    // Start container
                     sh '''
                         docker run -d --name ${CONTAINER_NAME} -p ${PORT}:${PORT} ${DOCKER_IMAGE}:latest
                     '''
                     
-                    // Wait for container to be ready
                     sh '''
                         echo "Waiting for container to be ready..."
                         sleep 5
                     '''
                     
-                    // Health check
                     sh '''
                         echo "Performing health check..."
                         curl -f http://localhost:${PORT}/health || exit 1
                     '''
                     
-                    // Test API endpoint
                     sh '''
                         echo "Testing random number endpoint..."
                         curl -f http://localhost:${PORT}/v1/random?min=10&max=20 || exit 1
                     '''
                     
-                    // Cleanup
                     sh '''
                         echo "Cleaning up container..."
                         docker stop ${CONTAINER_NAME}
@@ -124,7 +114,6 @@ pipeline {
     post {
         always {
             sh '''
-                # Cleanup containers and images
                 docker stop ${CONTAINER_NAME} 2>/dev/null || true
                 docker rm ${CONTAINER_NAME} 2>/dev/null || true
             '''
